@@ -31,13 +31,12 @@ class IlotProfile(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     project_id = db.Column(db.Integer, nullable=False)
     name = db.Column(db.String(255), nullable=False)
-    description = db.Column(Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Configuration data
-    unit_types = db.Column(JSON)  # List of unit types with percentages and size ranges
-    spacing_requirements = db.Column(JSON)  # Minimum spacing between units
-    corridor_width = db.Column(db.Float, default=2.0)  # Corridor width in meters
+    size_distribution = db.Column(JSON, nullable=False)  # Array of {minSize, maxSize, percentage}
+    corridor_width = db.Column(db.Float, default=1.5, nullable=False)
+    min_room_size = db.Column(db.Float, default=0.5, nullable=False)
+    max_room_size = db.Column(db.Float, default=50.0, nullable=False)
+    is_default = db.Column(db.Boolean, default=False, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     
     # Relationships
     placements = db.relationship('IlotPlacement', backref='ilot_profile', lazy=True)

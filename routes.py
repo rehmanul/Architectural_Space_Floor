@@ -2,6 +2,7 @@ from flask import render_template, request, redirect, url_for, flash, jsonify
 from werkzeug.utils import secure_filename
 import os
 import uuid
+import traceback
 from datetime import datetime
 from app import app, db
 from models import FloorPlan, IlotProfile, IlotPlacement, ZoneAnnotation, Project
@@ -78,6 +79,9 @@ def upload_floor_plan():
                     flash(f'File uploaded but processing had issues: {processing_result["error"]}', 'warning')
                 
             except Exception as e:
+                app.logger.error(f"File processing error for {filename}: {str(e)}")
+                app.logger.error(f"Traceback: {traceback.format_exc()}")
+                
                 # Create basic record even if processing fails
                 floor_plan = FloorPlan(
                     project_id=1,

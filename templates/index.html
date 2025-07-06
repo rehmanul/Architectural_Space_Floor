@@ -1,9 +1,69 @@
-
 {% extends "base.html" %}
 
 {% block title %}Home - Space Planning App{% endblock %}
 
 {% block content %}
+<div class="hero">
+        <h1>Welcome to Architectural Space Analyzer</h1>
+        <p>AI-powered hotel layout optimization with advanced spatial analysis</p>
+        <div class="cta-buttons">
+            <a href="{{ url_for('upload_floor_plan') }}" class="btn btn-primary">
+                <i class="icon">📁</i> Upload Floor Plan
+            </a>
+            <a href="{{ url_for('create_profile') }}" class="btn btn-secondary">
+                <i class="icon">⚙️</i> Create Profile
+            </a>
+            <a href="{{ url_for('create_placement') }}" class="btn btn-accent">
+                <i class="icon">🎯</i> Generate Layout
+            </a>
+        </div>
+    </div>
+
+    <!-- Analytics Dashboard -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ recent_plans|length }}</div>
+            <div class="stat-label">Floor Plans</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ recent_profiles|length }}</div>
+            <div class="stat-label">Îlot Profiles</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ recent_plans|selectattr('processed')|list|length }}</div>
+            <div class="stat-label">Processed Plans</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">
+                {% set total_size = recent_plans|sum(attribute='file_size') %}
+                {{ "%.1f"|format(total_size / (1024*1024)) }} MB
+            </div>
+            <div class="stat-label">Total Storage</div>
+        </div>
+    </div>
+
+    <!-- Feature Highlights -->
+    <div class="features-section">
+        <h2>Advanced Features</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <h3>🤖 AI-Powered Optimization</h3>
+                <p>Genetic algorithms and machine learning for optimal space utilization and layout generation.</p>
+            </div>
+            <div class="feature-card">
+                <h3>📐 Multi-Format Support</h3>
+                <p>Process DXF, DWG, PDF, and image files with automatic zone detection and analysis.</p>
+            </div>
+            <div class="feature-card">
+                <h3>📊 Real-Time Analytics</h3>
+                <p>Comprehensive statistics, utilization metrics, and performance scoring for every layout.</p>
+            </div>
+            <div class="feature-card">
+                <h3>🎨 3D Visualization</h3>
+                <p>Interactive 3D rendering with WebGL for immersive floor plan exploration.</p>
+            </div>
+        </div>
+    </div>
 <div class="row">
     <div class="col-md-12">
         <h1>Welcome to Space Planning App</h1>
@@ -36,7 +96,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">

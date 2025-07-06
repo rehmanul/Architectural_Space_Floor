@@ -1,7 +1,8 @@
 import { Link } from 'wouter';
-import { Building2, PlusCircle, Users, Settings } from 'lucide-react';
+import { Building2, PlusCircle, Users, Settings, Zap, Brain, Eye, FileUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tooltip } from '@/components/ui/tooltip';
 
 export function HomePage() {
   return (
@@ -34,6 +35,81 @@ export function HomePage() {
             </Link>
           </CardContent>
         </Card>
+
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileUp className="w-5 h-5" />
+              Upload Floor Plans
+            </CardTitle>
+            <CardDescription>
+              Upload DXF, CAD files, or architectural drawings
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tooltip content="Supports DXF, DWG, PNG, JPG, and PDF formats">
+              <Button className="w-full" variant="outline">
+                Upload Files
+              </Button>
+            </Tooltip>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Collaboration
+            </CardTitle>
+            <CardDescription>
+              Real-time team collaboration tools
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/collaboration">
+              <Button className="w-full" variant="outline">
+                Start Session
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-12">
+        <h2 className="text-2xl font-bold mb-6">Key Features</h2>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="text-center p-6">
+            <Brain className="w-8 h-8 mx-auto mb-3 text-blue-600" />
+            <h3 className="font-semibold mb-2">AI Optimization</h3>
+            <p className="text-sm text-muted-foreground">
+              Machine learning powered layout optimization for maximum space utilization
+            </p>
+          </Card>
+
+          <Card className="text-center p-6">
+            <Eye className="w-8 h-8 mx-auto mb-3 text-green-600" />
+            <h3 className="font-semibold mb-2">3D Visualization</h3>
+            <p className="text-sm text-muted-foreground">
+              Advanced WebGL rendering with interactive 3D navigation
+            </p>
+          </Card>
+
+          <Card className="text-center p-6">
+            <Zap className="w-8 h-8 mx-auto mb-3 text-purple-600" />
+            <h3 className="font-semibold mb-2">Real-time Updates</h3>
+            <p className="text-sm text-muted-foreground">
+              Live collaboration with instant layout updates across all participants
+            </p>
+          </Card>
+
+          <Card className="text-center p-6">
+            <Settings className="w-8 h-8 mx-auto mb-3 text-orange-600" />
+            <h3 className="font-semibold mb-2">Smart Analytics</h3>
+            <p className="text-sm text-muted-foreground">
+              Comprehensive space utilization metrics and performance analytics
+            </p>
+          </Card>
+        </div>
 
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>

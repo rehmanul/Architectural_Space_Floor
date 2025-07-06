@@ -1,196 +1,230 @@
 import { useState } from 'react';
-import { Moon, Sun, Monitor, Check } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useTheme } from '@/components/theme-provider';
-import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ColorPicker } from '@/components/ui/color-picker';
+import { Tooltip } from '@/components/ui/tooltip';
+import { Save, Download, Upload, Palette, Settings as SettingsIcon, Users, Eye } from 'lucide-react';
 
 export function SettingsPage() {
-  const { theme, setTheme } = useTheme();
-  const { toast } = useToast();
-  const [settings, setSettings] = useState({
-    autoSave: true,
-    showGrid: true,
-    snapToGrid: true,
-    highQualityRendering: true,
-    realTimeSync: true,
-  });
+  const [primaryColor, setPrimaryColor] = useState('#3b82f6');
+  const [secondaryColor, setSecondaryColor] = useState('#6b7280');
+  const [exportQuality, setExportQuality] = useState('high');
+  const [autoSave, setAutoSave] = useState(true);
+  const [collaborationRole, setCollaborationRole] = useState('editor');
 
-  const handleSettingChange = (key: string, value: boolean) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-    toast({
-      title: 'Setting updated',
-      description: `${key.replace(/([A-Z])/g, ' $1').trim()} has been ${value ? 'enabled' : 'disabled'}`,
-    });
+  const handleSaveSettings = () => {
+    const settings = {
+      primaryColor,
+      secondaryColor,
+      exportQuality,
+      autoSave,
+      collaborationRole
+    };
+    localStorage.setItem('app-settings', JSON.stringify(settings));
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-2xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Settings</h1>
-        <p className="text-muted-foreground">
-          Customize your workspace and preferences
-        </p>
+    <div className="container mx-auto p-6">
+      <div className="flex items-center gap-3 mb-6">
+        <SettingsIcon className="w-8 h-8" />
+        <h1 className="text-3xl font-bold">Settings</h1>
       </div>
 
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Appearance</CardTitle>
-            <CardDescription>Customize the look and feel</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+      <Tabs defaultValue="general" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="appearance">Appearance</TabsTrigger>
+          <TabsTrigger value="collaboration">Collaboration</TabsTrigger>
+          <TabsTrigger value="export">Export</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="general">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <SettingsIcon className="w-5 h-5" />
+                General Settings
+              </CardTitle>
+              <CardDescription>Configure your application preferences</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
               <div>
-                <Label className="text-sm font-medium mb-3 block">Theme</Label>
-                <RadioGroup value={theme} onValueChange={setTheme}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="light" id="light" />
-                    <Label htmlFor="light" className="flex items-center cursor-pointer">
-                      <Sun className="w-4 h-4 mr-2" />
-                      Light
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2 mt-2">
-                    <RadioGroupItem value="dark" id="dark" />
-                    <Label htmlFor="dark" className="flex items-center cursor-pointer">
-                      <Moon className="w-4 h-4 mr-2" />
-                      Dark
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2 mt-2">
-                    <RadioGroupItem value="system" id="system" />
-                    <Label htmlFor="system" className="flex items-center cursor-pointer">
-                      <Monitor className="w-4 h-4 mr-2" />
-                      System
-                    </Label>
-                  </div>
-                </RadioGroup>
+                <label className="block text-sm font-medium mb-2">Default Project Name</label>
+                <Input placeholder="My Hotel Project" />
               </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Editor Preferences</CardTitle>
-            <CardDescription>Configure floor plan editor behavior</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="auto-save" className="text-sm font-medium">
-                  Auto-save
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Automatically save changes while editing
-                </p>
+              <div>
+                <label className="block text-sm font-medium mb-2">Auto-save Interval</label>
+                <select className="w-full p-2 border rounded">
+                  <option value="30">30 seconds</option>
+                  <option value="60">1 minute</option>
+                  <option value="300">5 minutes</option>
+                  <option value="0">Disabled</option>
+                </select>
               </div>
-              <Switch
-                id="auto-save"
-                checked={settings.autoSave}
-                onCheckedChange={(checked) => handleSettingChange('autoSave', checked)}
-              />
-            </div>
 
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="show-grid" className="text-sm font-medium">
-                  Show grid
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Display grid lines in the editor
-                </p>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="autoSave"
+                  checked={autoSave}
+                  onChange={(e) => setAutoSave(e.target.checked)}
+                />
+                <label htmlFor="autoSave" className="text-sm font-medium">
+                  Enable auto-save
+                </label>
               </div>
-              <Switch
-                id="show-grid"
-                checked={settings.showGrid}
-                onCheckedChange={(checked) => handleSettingChange('showGrid', checked)}
-              />
-            </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="snap-to-grid" className="text-sm font-medium">
-                  Snap to grid
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Align elements to grid when moving
-                </p>
+        <TabsContent value="appearance">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="w-5 h-5" />
+                Appearance & Themes
+              </CardTitle>
+              <CardDescription>Customize the visual appearance of the application</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium mb-3">Primary Color</label>
+                <ColorPicker value={primaryColor} onChange={setPrimaryColor} />
               </div>
-              <Switch
-                id="snap-to-grid"
-                checked={settings.snapToGrid}
-                onCheckedChange={(checked) => handleSettingChange('snapToGrid', checked)}
-              />
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Performance</CardTitle>
-            <CardDescription>Optimize application performance</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="high-quality" className="text-sm font-medium">
-                  High quality rendering
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Enable anti-aliasing and shadows in 3D view
-                </p>
+              <div>
+                <label className="block text-sm font-medium mb-3">Secondary Color</label>
+                <ColorPicker value={secondaryColor} onChange={setSecondaryColor} />
               </div>
-              <Switch
-                id="high-quality"
-                checked={settings.highQualityRendering}
-                onCheckedChange={(checked) => handleSettingChange('highQualityRendering', checked)}
-              />
-            </div>
 
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="real-time-sync" className="text-sm font-medium">
-                  Real-time sync
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Sync changes immediately in collaboration mode
-                </p>
+              <div>
+                <label className="block text-sm font-medium mb-2">UI Scale</label>
+                <select className="w-full p-2 border rounded">
+                  <option value="small">Small (90%)</option>
+                  <option value="normal">Normal (100%)</option>
+                  <option value="large">Large (110%)</option>
+                  <option value="xl">Extra Large (125%)</option>
+                </select>
               </div>
-              <Switch
-                id="real-time-sync"
-                checked={settings.realTimeSync}
-                onCheckedChange={(checked) => handleSettingChange('realTimeSync', checked)}
-              />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>About</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Version:</span>
-                <span className="font-medium">1.0.0</span>
+        <TabsContent value="collaboration">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Collaboration Settings
+              </CardTitle>
+              <CardDescription>Configure real-time collaboration preferences</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">Default Role</label>
+                <select 
+                  className="w-full p-2 border rounded"
+                  value={collaborationRole}
+                  onChange={(e) => setCollaborationRole(e.target.value)}
+                >
+                  <option value="viewer">Viewer</option>
+                  <option value="editor">Editor</option>
+                  <option value="host">Host</option>
+                </select>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">License:</span>
-                <span className="font-medium">MIT</span>
+
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="showCursors" defaultChecked />
+                  <label htmlFor="showCursors" className="text-sm font-medium">
+                    Show participant cursors
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="soundNotifications" defaultChecked />
+                  <label htmlFor="soundNotifications" className="text-sm font-medium">
+                    Sound notifications
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="autoJoinSessions" />
+                  <label htmlFor="autoJoinSessions" className="text-sm font-medium">
+                    Auto-join collaboration sessions
+                  </label>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Built with:</span>
-                <span className="font-medium">React, TypeScript, Three.js</span>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="export">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Download className="w-5 h-5" />
+                Export Settings
+              </CardTitle>
+              <CardDescription>Configure export and output preferences</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">Default Export Quality</label>
+                <select 
+                  className="w-full p-2 border rounded"
+                  value={exportQuality}
+                  onChange={(e) => setExportQuality(e.target.value)}
+                >
+                  <option value="high">High (300 DPI)</option>
+                  <option value="medium">Medium (150 DPI)</option>
+                  <option value="low">Low (72 DPI)</option>
+                </select>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Default Export Format</label>
+                <select className="w-full p-2 border rounded">
+                  <option value="pdf">PDF</option>
+                  <option value="png">PNG</option>
+                  <option value="jpg">JPEG</option>
+                  <option value="json">JSON Data</option>
+                </select>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="includeMetadata" defaultChecked />
+                  <label htmlFor="includeMetadata" className="text-sm font-medium">
+                    Include metadata in exports
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="watermark" />
+                  <label htmlFor="watermark" className="text-sm font-medium">
+                    Add watermark to exports
+                  </label>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      <div className="flex justify-end gap-4 mt-8">
+        <Button variant="outline">
+          Reset to Defaults
+        </Button>
+        <Tooltip content="Save all settings changes">
+          <Button onClick={handleSaveSettings} className="flex items-center gap-2">
+            <Save className="w-4 h-4" />
+            Save Settings
+          </Button>
+        </Tooltip>
       </div>
     </div>
   );

@@ -1,0 +1,58 @@
+{
+  "name": "architectural-space-analyzer",
+  "version": "1.0.0",
+  "description": "Advanced architectural space analysis with AI-powered optimization",
+  "main": "server/index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "build": "node build.js",
+    "postinstall": "npm run db:generate || true",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push"
+  },
+  "keywords": [
+    "architecture",
+    "space-planning",
+    "hotel-layout",
+    "floor-plan",
+    "CAD",
+    "DXF",
+    "AI",
+    "optimization"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@hookform/resolvers": "^5.1.1",
+    "@neondatabase/serverless": "^1.0.1",
+    "@tensorflow/tfjs-node": "^4.22.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.0.1",
+    "drizzle-orm": "^0.44.2",
+    "drizzle-zod": "^0.8.2",
+    "dxf-parser": "^1.1.2",
+    "earcut": "^3.0.1",
+    "express": "^5.1.0",
+    "multer": "^2.0.1",
+    "pdf-lib": "^1.17.1",
+    "pdfkit": "^0.17.1",
+    "polygon-clipping": "^0.15.7",
+    "sharp": "^0.34.2",
+    "three": "^0.178.0",
+    "uuid": "^11.1.0",
+    "ws": "^8.18.3",
+    "zod": "^3.25.74"
+  },
+  "devDependencies": {
+    "@types/multer": "^2.0.0",
+    "@types/node": "^24.0.10",
+    "@types/uuid": "^10.0.0",
+    "drizzle-kit": "^0.31.2",
+    "typescript": "^5.8.3"
+  }
+}

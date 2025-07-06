@@ -1,18 +1,8 @@
 import { Link, useLocation } from 'wouter';
-import { cn } from '@/lib/utils';
+import { Home, Building2, Settings, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useTheme } from '@/components/theme-provider';
-import { useCollaboration } from '@/components/collaboration-provider';
-import { 
-  Home, 
-  FolderOpen, 
-  Settings, 
-  Moon, 
-  Sun, 
-  Users,
-  Building2,
-  LayoutGrid
-} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -20,44 +10,81 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const [location] = useLocation();
-  const { theme, setTheme } = useTheme();
-  const { isConnected, sessionId, participants } = useCollaboration();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navigation = [
     { name: 'Home', href: '/', icon: Home },
-    { name: 'Projects', href: '/projects', icon: FolderOpen },
+    { name: 'Projects', href: '/projects', icon: Building2 },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
-
-  const isActive = (href: string) => {
-    if (href === '/') {
-      return location === '/';
-    }
-    return location.startsWith(href);
-  };
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex h-16 items-center px-4">
-          <div className="flex items-center space-x-4">
-            <Building2 className="h-6 w-6" />
-            <h1 className="text-lg font-semibold">Architectural Space Analyzer</h1>
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 items-center">
+          <div className="mr-4 hidden md:flex">
+            <Link href="/">
+              <a className="mr-6 flex items-center space-x-2">
+                <Building2 className="h-6 w-6" />
+                <span className="hidden font-bold sm:inline-block">
+                  Space Analyzer
+                </span>
+              </a>
+            </Link>
+            <nav className="flex items-center space-x-6 text-sm font-medium">
+              {navigation.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link key={item.href} href={item.href}>
+                    <a
+                      className={cn(
+                        'flex items-center space-x-2 transition-colors hover:text-foreground/80',
+                        location === item.href ? 'text-foreground' : 'text-foreground/60'
+                      )}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span>{item.name}</span>
+                    </a>
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
           
-          <nav className="flex items-center space-x-4 lg:space-x-6 mx-6">
+          {/* Mobile menu button */}
+          <Button
+            variant="ghost"
+            className="md:hidden"
+            size="icon"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </Button>
+          
+          <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+            <div className="w-full flex-1 md:w-auto md:flex-none">
+              {/* Add search or other header items here */}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Mobile menu */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div className="fixed inset-0 bg-black/50" onClick={() => setIsMobileMenuOpen(false)} />
+          <nav className="fixed left-0 top-14 bottom-0 w-64 bg-background p-6 shadow-lg">
             {navigation.map((item) => {
               const Icon = item.icon;
               return (
-                <Link key={item.name} href={item.href}>
+                <Link key={item.href} href={item.href}>
                   <a
                     className={cn(
-                      'flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary',
-                      isActive(item.href)
-                        ? 'text-foreground'
-                        : 'text-muted-foreground'
+                      'flex items-center space-x-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent',
+                      location === item.href ? 'bg-accent' : ''
                     )}
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <Icon className="h-4 w-4" />
                     <span>{item.name}</span>
@@ -66,61 +93,11 @@ export function Layout({ children }: LayoutProps) {
               );
             })}
           </nav>
-
-          <div className="ml-auto flex items-center space-x-4">
-            {/* Collaboration Status */}
-            {sessionId && (
-              <div className="flex items-center space-x-2 text-sm">
-                <Users className="h-4 w-4" />
-                <span className="text-muted-foreground">
-                  {participants.length} participant{participants.length !== 1 ? 's' : ''}
-                </span>
-                <div className={cn(
-                  'h-2 w-2 rounded-full',
-                  isConnected ? 'bg-green-500' : 'bg-red-500'
-                )} />
-              </div>
-            )}
-
-            {/* Theme Toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            >
-              {theme === 'light' ? (
-                <Moon className="h-4 w-4" />
-              ) : (
-                <Sun className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
         </div>
-      </header>
+      )}
 
-      {/* Main Content */}
-      <main className="flex-1">
-        {children}
-      </main>
-
-      {/* Collaboration Cursors */}
-      {sessionId && participants.map((participant) => (
-        participant.cursor && participant.userId !== useCollaboration().currentUserId && (
-          <div
-            key={participant.userId}
-            className="collaboration-cursor"
-            style={{
-              left: participant.cursor.x,
-              top: participant.cursor.y,
-              color: `hsl(${Math.abs(participant.userId.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % 360}, 70%, 50%)`
-            }}
-          >
-            <div className="collaboration-user-label">
-              {participant.userName}
-            </div>
-          </div>
-        )
-      ))}
+      {/* Main content */}
+      <main className="flex-1">{children}</main>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { storage } from './storage';
 import { FileProcessor } from './services/file-processor';
 import { MLOptimizer } from './algorithms/ml-optimizer';
 import { collaborationService } from './services/collaboration';
+import { createSampleData } from './services/sample-data';
 import { 
   insertProjectSchema, insertFloorPlanSchema, insertZoneSchema,
   insertIlotConfigurationSchema, insertGeneratedLayoutSchema,
@@ -37,7 +38,14 @@ const upload = multer({
 router.get('/api/projects', async (req, res) => {
   try {
     const userId = req.headers['x-user-id'] as string || 'default-user';
-    const projects = await storage.getProjects(userId);
+    let projects = await storage.getProjects(userId);
+    
+    // Create sample data for new users
+    if (projects.length === 0) {
+      await createSampleData(userId);
+      projects = await storage.getProjects(userId);
+    }
+    
     res.json(projects);
   } catch (error) {
     console.error('Error fetching projects:', error);

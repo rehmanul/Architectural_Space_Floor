@@ -1,224 +1,196 @@
 import { useState } from 'react';
+import { Moon, Sun, Monitor, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useTheme } from '@/components/theme-provider';
 import { useToast } from '@/hooks/use-toast';
-import { Settings as SettingsIcon, Moon, Sun, Monitor, Save, Download, Trash2 } from 'lucide-react';
 
 export function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
-  const [preferences, setPreferences] = useState({
-    defaultCorridorWidth: 1.5,
-    defaultScale: 1.0,
+  const [settings, setSettings] = useState({
     autoSave: true,
-    gridSize: 5,
-    maxFileSize: 50,
-    exportQuality: 'high'
+    showGrid: true,
+    snapToGrid: true,
+    highQualityRendering: true,
+    realTimeSync: true,
   });
 
-  const handleSavePreferences = () => {
-    localStorage.setItem('app-preferences', JSON.stringify(preferences));
+  const handleSettingChange = (key: string, value: boolean) => {
+    setSettings(prev => ({ ...prev, [key]: value }));
     toast({
-      title: 'Settings saved',
-      description: 'Your preferences have been saved successfully.',
-      variant: 'success',
-    });
-  };
-
-  const handleExportData = () => {
-    // Export user data and projects
-    toast({
-      title: 'Export started',
-      description: 'Your data export will begin shortly.',
-      variant: 'default',
-    });
-  };
-
-  const handleClearCache = () => {
-    localStorage.clear();
-    toast({
-      title: 'Cache cleared',
-      description: 'Application cache has been cleared.',
-      variant: 'success',
+      title: 'Setting updated',
+      description: `${key.replace(/([A-Z])/g, ' $1').trim()} has been ${value ? 'enabled' : 'disabled'}`,
     });
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center gap-2 mb-8">
-        <SettingsIcon className="h-6 w-6" />
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+    <div className="container mx-auto p-6 max-w-2xl">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">Settings</h1>
+        <p className="text-muted-foreground">
+          Customize your workspace and preferences
+        </p>
       </div>
 
-      <div className="max-w-4xl space-y-6">
-        {/* Appearance */}
+      <div className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Appearance</CardTitle>
-            <CardDescription>
-              Customize the visual appearance of the application
-            </CardDescription>
+            <CardDescription>Customize the look and feel</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium">Theme</label>
-                <div className="flex gap-2 mt-2">
-                  <Button
-                    variant={theme === 'light' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setTheme('light')}
-                    className="gap-2"
-                  >
-                    <Sun className="h-4 w-4" />
-                    Light
-                  </Button>
-                  <Button
-                    variant={theme === 'dark' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setTheme('dark')}
-                    className="gap-2"
-                  >
-                    <Moon className="h-4 w-4" />
-                    Dark
-                  </Button>
-                  <Button
-                    variant={theme === 'system' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setTheme('system')}
-                    className="gap-2"
-                  >
-                    <Monitor className="h-4 w-4" />
-                    System
-                  </Button>
-                </div>
+                <Label className="text-sm font-medium mb-3 block">Theme</Label>
+                <RadioGroup value={theme} onValueChange={setTheme}>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="light" id="light" />
+                    <Label htmlFor="light" className="flex items-center cursor-pointer">
+                      <Sun className="w-4 h-4 mr-2" />
+                      Light
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 mt-2">
+                    <RadioGroupItem value="dark" id="dark" />
+                    <Label htmlFor="dark" className="flex items-center cursor-pointer">
+                      <Moon className="w-4 h-4 mr-2" />
+                      Dark
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 mt-2">
+                    <RadioGroupItem value="system" id="system" />
+                    <Label htmlFor="system" className="flex items-center cursor-pointer">
+                      <Monitor className="w-4 h-4 mr-2" />
+                      System
+                    </Label>
+                  </div>
+                </RadioGroup>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Default Values */}
         <Card>
           <CardHeader>
-            <CardTitle>Default Values</CardTitle>
-            <CardDescription>
-              Set default values for new floor plans and configurations
-            </CardDescription>
+            <CardTitle>Editor Preferences</CardTitle>
+            <CardDescription>Configure floor plan editor behavior</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Default Corridor Width (m)</label>
-                <Input
-                  type="number"
-                  min="0.5"
-                  max="5"
-                  step="0.1"
-                  value={preferences.defaultCorridorWidth}
-                  onChange={(e) => setPreferences(prev => ({
-                    ...prev,
-                    defaultCorridorWidth: parseFloat(e.target.value) || 1.5
-                  }))}
-                />
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="auto-save" className="text-sm font-medium">
+                  Auto-save
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Automatically save changes while editing
+                </p>
               </div>
-              <div>
-                <label className="text-sm font-medium">Default Scale</label>
-                <Input
-                  type="number"
-                  min="0.1"
-                  max="10"
-                  step="0.1"
-                  value={preferences.defaultScale}
-                  onChange={(e) => setPreferences(prev => ({
-                    ...prev,
-                    defaultScale: parseFloat(e.target.value) || 1.0
-                  }))}
-                />
+              <Switch
+                id="auto-save"
+                checked={settings.autoSave}
+                onCheckedChange={(checked) => handleSettingChange('autoSave', checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="show-grid" className="text-sm font-medium">
+                  Show grid
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Display grid lines in the editor
+                </p>
               </div>
-              <div>
-                <label className="text-sm font-medium">Grid Size (m)</label>
-                <Input
-                  type="number"
-                  min="1"
-                  max="20"
-                  value={preferences.gridSize}
-                  onChange={(e) => setPreferences(prev => ({
-                    ...prev,
-                    gridSize: parseInt(e.target.value) || 5
-                  }))}
-                />
+              <Switch
+                id="show-grid"
+                checked={settings.showGrid}
+                onCheckedChange={(checked) => handleSettingChange('showGrid', checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="snap-to-grid" className="text-sm font-medium">
+                  Snap to grid
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Align elements to grid when moving
+                </p>
               </div>
-              <div>
-                <label className="text-sm font-medium">Max File Size (MB)</label>
-                <Input
-                  type="number"
-                  min="10"
-                  max="200"
-                  value={preferences.maxFileSize}
-                  onChange={(e) => setPreferences(prev => ({
-                    ...prev,
-                    maxFileSize: parseInt(e.target.value) || 50
-                  }))}
-                />
-              </div>
+              <Switch
+                id="snap-to-grid"
+                checked={settings.snapToGrid}
+                onCheckedChange={(checked) => handleSettingChange('snapToGrid', checked)}
+              />
             </div>
           </CardContent>
         </Card>
 
-        {/* Export & Data */}
         <Card>
           <CardHeader>
-            <CardTitle>Data Management</CardTitle>
-            <CardDescription>
-              Export your data or clear application cache
-            </CardDescription>
+            <CardTitle>Performance</CardTitle>
+            <CardDescription>Optimize application performance</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={handleExportData} className="gap-2">
-                <Download className="h-4 w-4" />
-                Export Data
-              </Button>
-              <Button variant="outline" onClick={handleClearCache} className="gap-2">
-                <Trash2 className="h-4 w-4" />
-                Clear Cache
-              </Button>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="high-quality" className="text-sm font-medium">
+                  High quality rendering
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Enable anti-aliasing and shadows in 3D view
+                </p>
+              </div>
+              <Switch
+                id="high-quality"
+                checked={settings.highQualityRendering}
+                onCheckedChange={(checked) => handleSettingChange('highQualityRendering', checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="real-time-sync" className="text-sm font-medium">
+                  Real-time sync
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Sync changes immediately in collaboration mode
+                </p>
+              </div>
+              <Switch
+                id="real-time-sync"
+                checked={settings.realTimeSync}
+                onCheckedChange={(checked) => handleSettingChange('realTimeSync', checked)}
+              />
             </div>
           </CardContent>
         </Card>
 
-        {/* About */}
         <Card>
           <CardHeader>
             <CardTitle>About</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2 text-sm">
-              <div>
+              <div className="flex justify-between">
                 <span className="text-muted-foreground">Version:</span>
-                <span className="ml-2">1.0.0</span>
+                <span className="font-medium">1.0.0</span>
               </div>
-              <div>
-                <span className="text-muted-foreground">Build:</span>
-                <span className="ml-2">2025.1.6</span>
-              </div>
-              <div>
+              <div className="flex justify-between">
                 <span className="text-muted-foreground">License:</span>
-                <span className="ml-2">MIT</span>
+                <span className="font-medium">MIT</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Built with:</span>
+                <span className="font-medium">React, TypeScript, Three.js</span>
               </div>
             </div>
           </CardContent>
         </Card>
-
-        {/* Save Button */}
-        <div className="flex justify-end">
-          <Button onClick={handleSavePreferences} className="gap-2">
-            <Save className="h-4 w-4" />
-            Save Settings
-          </Button>
-        </div>
       </div>
     </div>
   );

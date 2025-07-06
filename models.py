@@ -39,23 +39,30 @@ class IlotProfile(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     
     # Relationships
-    placements = db.relationship('IlotPlacement', backref='ilot_profile', lazy=True)
+    placements = db.relationship('IlotPlacement', backref='ilot_profile', lazy=True, foreign_keys='IlotPlacement.configuration_id')
 
 class IlotPlacement(db.Model):
     __tablename__ = 'generated_layouts'
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     floor_plan_id = db.Column(db.Integer, db.ForeignKey('floor_plans.id'), nullable=False)
-    ilot_profile_id = db.Column(db.Integer, db.ForeignKey('ilot_configurations.id'), nullable=False)
+    configuration_id = db.Column(db.Integer, db.ForeignKey('ilot_configurations.id'), nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+    total_ilots = db.Column(db.Integer, nullable=False)
+    total_area = db.Column(db.Float, nullable=False)
+    utilization_percentage = db.Column(db.Float, nullable=False)
+    ilot_data = db.Column(JSON, nullable=False)  # Array of positioned ilots
+    corridor_data = db.Column(JSON, nullable=False)  # Array of corridors
+    optimization_score = db.Column(db.Float)  # ML-generated optimization score
+    generation_time = db.Column(db.Float, nullable=False)  # Time taken to generate
+    algorithm = db.Column(db.String(100), nullable=False)  # Algorithm used
+    status = db.Column(db.String(50), default='completed', nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Placement results
+    # Legacy columns for backward compatibility
     placed_units = db.Column(JSON)  # Coordinates and properties of placed units
     corridors = db.Column(JSON)  # Generated corridor paths
     statistics = db.Column(JSON)  # Placement statistics (utilization, counts, etc.)
-    
-    # Status
-    status = db.Column(db.String(20), default='pending')  # pending, processing, completed, failed
     error_message = db.Column(Text)
 
 class ZoneAnnotation(db.Model):

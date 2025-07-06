@@ -98,7 +98,7 @@ def create_profile():
 def view_profile(id):
     """View a specific ilot profile"""
     profile = IlotProfile.query.get_or_404(id)
-    placements = IlotPlacement.query.filter_by(ilot_profile_id=id).order_by(IlotPlacement.created_at.desc()).all()
+    placements = IlotPlacement.query.filter_by(configuration_id=id).order_by(IlotPlacement.created_at.desc()).all()
     return render_template('view_profile.html', profile=profile, placements=placements)
 
 @app.route('/placements')
@@ -113,7 +113,15 @@ def create_placement():
     if request.method == 'POST':
         placement = IlotPlacement(
             floor_plan_id=request.form['floor_plan_id'],
-            ilot_profile_id=request.form['ilot_profile_id']
+            configuration_id=request.form['configuration_id'],
+            name=request.form.get('name', f'Layout {datetime.utcnow().strftime("%Y%m%d_%H%M%S")}'),
+            total_ilots=0,
+            total_area=0.0,
+            utilization_percentage=0.0,
+            ilot_data=[],
+            corridor_data=[],
+            generation_time=0.0,
+            algorithm='Manual Creation'
         )
         
         db.session.add(placement)

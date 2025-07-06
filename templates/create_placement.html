@@ -20,11 +20,11 @@
     </div>
     
     <div class="mb-3">
-        <label for="ilot_profile_id" class="form-label">Ilot Profile</label>
-        <select class="form-select" id="ilot_profile_id" name="ilot_profile_id" required>
+        <label for="configuration_id" class="form-label">Ilot Profile</label>
+        <select class="form-select" id="configuration_id" name="configuration_id" required>
             <option value="">Select a profile...</option>
             {% for profile in profiles %}
-            <option value="{{ profile.id }}" {{ 'selected' if request.args.get('ilot_profile_id') == profile.id|string }}>
+            <option value="{{ profile.id }}" {{ 'selected' if request.args.get('configuration_id') == profile.id|string }}>
                 {{ profile.name }}
             </option>
             {% endfor %}

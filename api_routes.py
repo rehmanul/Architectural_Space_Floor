@@ -1,55 +1,69 @@
-
-from flask import Blueprint, request, jsonify, send_file
+from flask import Blueprint, request, jsonify, current_app
 from werkzeug.utils import secure_filename
 import os
-import uuid
-import json
-from datetime import datetime
-from app import app, db
-from models import FloorPlan, IlotProfile, IlotPlacement, ZoneAnnotation, Project
 from file_processor import FileProcessor
-import traceback
+from app import app, db
+from models import FloorPlan, IlotProfile, IlotPlacement
 
+# Create API blueprint
 api = Blueprint('api', __name__, url_prefix='/api')
 
 @api.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
-    return jsonify({'status': 'healthy', 'timestamp': datetime.utcnow().isoformat()})
+    return jsonify({
+        'status': 'healthy',
+        'message': 'API is running'
+    })
 
-@api.route('/projects', methods=['GET', 'POST'])
-def projects():
-    """Get all projects or create a new one"""
-    if request.method == 'GET':
-        projects = Project.query.order_by(Project.created_at.desc()).all()
-        return jsonify([{
-            'id': p.id,
-            'name': p.name,
-            'description': p.description,
-            'created_at': p.created_at.isoformat(),
-            'updated_at': p.updated_at.isoformat(),
-            'user_id': p.user_id,
-            'metadata_info': p.metadata_info
-        } for p in projects])
-    
-    elif request.method == 'POST':
-        data = request.get_json()
-        project = Project(
-            name=data['name'],
-            description=data.get('description', ''),
-            user_id=data.get('user_id', 'default_user'),
-            metadata_info=data.get('metadata_info', {})
-        )
-        db.session.add(project)
-        db.session.commit()
-        
-        return jsonify({
-            'id': project.id,
-            'name': project.name,
-            'description': project.description,
-            'created_at': project.created_at.isoformat(),
-            'user_id': project.user_id
-        }), 201
+@api.route('/projects', methods=['GET'])
+def get_projects():
+    """Get all projects"""
+    # For now, return a default project since the models suggest project_id=1
+    return jsonify({
+        'projects': [
+            {
+                'id': 1,
+                'name': 'Default Project',
+                'description': 'Default project for space planning'
+            }
+        ]
+    })
+
+@api.route('/floor-plans', methods=['GET'])
+def get_floor_plans():
+    """Get all floor plans"""
+    plans = FloorPlan.query.order_by(FloorPlan.created_at.desc()).all()
+    return jsonify({
+        'floor_plans': [
+            {
+                'id': plan.id,
+                'name': plan.name,
+                'file_type': plan.file_type,
+                'width': plan.width,
+                'height': plan.height,
+                'processed': plan.processed,
+                'created_at': plan.created_at.isoformat() if plan.created_at else None
+            }
+            for plan in plans
+        ]
+    })
+
+@api.route('/profiles', methods=['GET'])
+def get_profiles():
+    """Get all ilot profiles"""
+    profiles = IlotProfile.query.order_by(IlotProfile.created_at.desc()).all()
+    return jsonify({
+        'profiles': [
+            {
+                'id': profile.id,
+                'name': profile.name,
+                'corridor_width': profile.corridor_width,
+                'created_at': profile.created_at.isoformat() if profile.created_at else None
+            }
+            for profile in profiles
+        ]
+    })
 
 @api.route('/projects/<int:project_id>', methods=['GET', 'PUT', 'DELETE'])
 def project_detail(project_id):
@@ -93,100 +107,6 @@ def project_detail(project_id):
         db.session.delete(project)
         db.session.commit()
         return jsonify({'message': 'Project deleted successfully'})
-
-@api.route('/floor-plans', methods=['GET', 'POST'])
-def floor_plans():
-    """Get all floor plans or upload a new one"""
-    if request.method == 'GET':
-        plans = FloorPlan.query.order_by(FloorPlan.created_at.desc()).all()
-        return jsonify([{
-            'id': fp.id,
-            'name': fp.name,
-            'file_type': fp.file_type,
-            'file_size': fp.file_size,
-            'width': fp.width,
-            'height': fp.height,
-            'processed': fp.processed,
-            'created_at': fp.created_at.isoformat(),
-            'analysis_data': fp.analysis_data
-        } for fp in plans])
-    
-    elif request.method == 'POST':
-        if 'file' not in request.files:
-            return jsonify({'error': 'No file provided'}), 400
-        
-        file = request.files['file']
-        if file.filename == '':
-            return jsonify({'error': 'No file selected'}), 400
-        
-        if not allowed_file(file.filename):
-            return jsonify({'error': 'File type not supported'}), 400
-        
-        try:
-            # Save file
-            filename = secure_filename(file.filename)
-            file_id = str(uuid.uuid4())
-            file_ext = filename.rsplit('.', 1)[1].lower()
-            new_filename = f"{file_id}.{file_ext}"
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
-            file.save(file_path)
-            
-            # Process file
-            processor = FileProcessor()
-            processing_result = processor.process_file(file_path, 
-                os.path.join(app.config['UPLOAD_FOLDER'], 'processed', file_id))
-            
-            # Determine file type
-            detected_type = processor.detect_file_type(file_path)
-            if detected_type == 'cad':
-                file_type = 'cad'
-            elif detected_type == 'pdf':
-                file_type = 'pdf'
-            elif detected_type == 'image':
-                file_type = 'image'
-            else:
-                file_type = 'unknown'
-            
-            # Extract dimensions
-            width = height = 100.0
-            if processing_result['success'] and processing_result['data']:
-                data = processing_result['data']
-                if 'bounds' in data and data['bounds']:
-                    bounds = data['bounds']
-                    width = bounds['width']
-                    height = bounds['height']
-                elif 'width' in data:
-                    width = data['width']
-                    height = data['height']
-            
-            # Create floor plan record
-            floor_plan = FloorPlan(
-                project_id=request.form.get('project_id', 1),
-                name=request.form.get('name', filename),
-                original_file_name=filename,
-                file_path=file_path,
-                file_type=file_type,
-                file_size=os.path.getsize(file_path),
-                width=width,
-                height=height,
-                processed=processing_result['success'],
-                processed_at=datetime.utcnow() if processing_result['success'] else None,
-                analysis_data=processing_result['data'] if processing_result['success'] else None
-            )
-            
-            db.session.add(floor_plan)
-            db.session.commit()
-            
-            return jsonify({
-                'id': floor_plan.id,
-                'name': floor_plan.name,
-                'file_type': floor_plan.file_type,
-                'processed': floor_plan.processed,
-                'processing_result': processing_result
-            }), 201
-            
-        except Exception as e:
-            return jsonify({'error': f'Processing failed: {str(e)}'}), 500
 
 @api.route('/floor-plans/<int:plan_id>', methods=['GET', 'PUT', 'DELETE'])
 def floor_plan_detail(plan_id):
@@ -238,43 +158,6 @@ def floor_plan_detail(plan_id):
         db.session.commit()
         return jsonify({'message': 'Floor plan deleted successfully'})
 
-@api.route('/profiles', methods=['GET', 'POST'])
-def ilot_profiles():
-    """Get all profiles or create a new one"""
-    if request.method == 'GET':
-        profiles = IlotProfile.query.order_by(IlotProfile.created_at.desc()).all()
-        return jsonify([{
-            'id': p.id,
-            'name': p.name,
-            'size_distribution': p.size_distribution,
-            'corridor_width': p.corridor_width,
-            'min_room_size': p.min_room_size,
-            'max_room_size': p.max_room_size,
-            'is_default': p.is_default,
-            'created_at': p.created_at.isoformat()
-        } for p in profiles])
-    
-    elif request.method == 'POST':
-        data = request.get_json()
-        profile = IlotProfile(
-            project_id=data.get('project_id', 1),
-            name=data['name'],
-            size_distribution=data.get('size_distribution', []),
-            corridor_width=data.get('corridor_width', 1.5),
-            min_room_size=data.get('min_room_size', 0.5),
-            max_room_size=data.get('max_room_size', 50.0),
-            is_default=data.get('is_default', False)
-        )
-        db.session.add(profile)
-        db.session.commit()
-        
-        return jsonify({
-            'id': profile.id,
-            'name': profile.name,
-            'corridor_width': profile.corridor_width,
-            'is_default': profile.is_default
-        }), 201
-
 @api.route('/profiles/<int:profile_id>', methods=['GET', 'PUT', 'DELETE'])
 def profile_detail(profile_id):
     """Get, update, or delete a specific profile"""
@@ -316,6 +199,144 @@ def profile_detail(profile_id):
         db.session.delete(profile)
         db.session.commit()
         return jsonify({'message': 'Profile deleted successfully'})
+
+def allowed_file(filename):
+    """Check if file type is allowed"""
+    processor = FileProcessor()
+    extension = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
+    return extension in processor.get_supported_formats()
+
+from flask import Flask, request, jsonify
+import os
+import uuid
+import json
+from datetime import datetime
+from app import db  # Assuming db is initialized in app.py
+from models import FloorPlan, IlotProfile, IlotPlacement, ZoneAnnotation, Project
+import traceback
+
+@api.route('/projects', methods=['POST'])
+def create_project():
+    """Create a new project"""
+    data = request.get_json()
+    project = Project(
+        name=data['name'],
+        description=data.get('description', ''),
+        user_id=data.get('user_id', 'default_user'),
+        metadata_info=data.get('metadata_info', {})
+    )
+    db.session.add(project)
+    db.session.commit()
+    
+    return jsonify({
+        'id': project.id,
+        'name': project.name,
+        'description': project.description,
+        'created_at': project.created_at.isoformat(),
+        'user_id': project.user_id
+    }), 201
+
+@api.route('/floor-plans', methods=['POST'])
+def upload_floor_plan():
+    """Upload a new floor plan"""
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+    
+    if not allowed_file(file.filename):
+        return jsonify({'error': 'File type not supported'}), 400
+    
+    try:
+        # Save file
+        filename = secure_filename(file.filename)
+        file_id = str(uuid.uuid4())
+        file_ext = filename.rsplit('.', 1)[1].lower()
+        new_filename = f"{file_id}.{file_ext}"
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
+        file.save(file_path)
+        
+        # Process file
+        processor = FileProcessor()
+        processing_result = processor.process_file(file_path, 
+            os.path.join(app.config['UPLOAD_FOLDER'], 'processed', file_id))
+        
+        # Determine file type
+        detected_type = processor.detect_file_type(file_path)
+        if detected_type == 'cad':
+            file_type = 'cad'
+        elif detected_type == 'pdf':
+            file_type = 'pdf'
+        elif detected_type == 'image':
+            file_type = 'image'
+        else:
+            file_type = 'unknown'
+        
+        # Extract dimensions
+        width = height = 100.0
+        if processing_result['success'] and processing_result['data']:
+            data = processing_result['data']
+            if 'bounds' in data and data['bounds']:
+                bounds = data['bounds']
+                width = bounds['width']
+                height = bounds['height']
+            elif 'width' in data:
+                width = data['width']
+                height = data['height']
+        
+        # Create floor plan record
+        floor_plan = FloorPlan(
+            project_id=request.form.get('project_id', 1),
+            name=request.form.get('name', filename),
+            original_file_name=filename,
+            file_path=file_path,
+            file_type=file_type,
+            file_size=os.path.getsize(file_path),
+            width=width,
+            height=height,
+            processed=processing_result['success'],
+            processed_at=datetime.utcnow() if processing_result['success'] else None,
+            analysis_data=processing_result['data'] if processing_result['success'] else None
+        )
+        
+        db.session.add(floor_plan)
+        db.session.commit()
+        
+        return jsonify({
+            'id': floor_plan.id,
+            'name': floor_plan.name,
+            'file_type': floor_plan.file_type,
+            'processed': floor_plan.processed,
+            'processing_result': processing_result
+        }), 201
+        
+    except Exception as e:
+        return jsonify({'error': f'Processing failed: {str(e)}'}), 500
+
+@api.route('/profiles', methods=['POST'])
+def create_profile():
+    """Create a new ilot profile"""
+    data = request.get_json()
+    profile = IlotProfile(
+        project_id=data.get('project_id', 1),
+        name=data['name'],
+        size_distribution=data.get('size_distribution', []),
+        corridor_width=data.get('corridor_width', 1.5),
+        min_room_size=data.get('min_room_size', 0.5),
+        max_room_size=data.get('max_room_size', 50.0),
+        is_default=data.get('is_default', False)
+    )
+    db.session.add(profile)
+    db.session.commit()
+    
+    return jsonify({
+        'id': profile.id,
+        'name': profile.name,
+        'corridor_width': profile.corridor_width,
+        'is_default': profile.is_default
+    }), 201
 
 @api.route('/zones', methods=['GET', 'POST'])
 def zones():
@@ -469,12 +490,6 @@ def placement_detail(placement_id):
         db.session.delete(placement)
         db.session.commit()
         return jsonify({'message': 'Placement deleted successfully'})
-
-def allowed_file(filename):
-    """Check if file type is allowed"""
-    processor = FileProcessor()
-    extension = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
-    return extension in processor.get_supported_formats()
 
 # Register the blueprint
 app.register_blueprint(api)

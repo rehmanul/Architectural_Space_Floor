@@ -123,3 +123,78 @@
     </div>
 </div>
 {% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Space Planning App{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1>Welcome to Space Planning App</h1>
+            <p class="lead">Optimize your space with intelligent floor plan analysis and ilot placement.</p>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Recent Floor Plans</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_plans %}
+                        {% for plan in recent_plans %}
+                        <div class="mb-2">
+                            <a href="{{ url_for('view_floor_plan', id=plan.id) }}" class="text-decoration-none">
+                                {{ plan.name }}
+                            </a>
+                            <small class="text-muted d-block">{{ plan.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No floor plans uploaded yet.</p>
+                    {% endif %}
+                    <a href="{{ url_for('upload_floor_plan') }}" class="btn btn-primary btn-sm">Upload Floor Plan</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Recent Profiles</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_profiles %}
+                        {% for profile in recent_profiles %}
+                        <div class="mb-2">
+                            <a href="{{ url_for('view_profile', id=profile.id) }}" class="text-decoration-none">
+                                {{ profile.name }}
+                            </a>
+                            <small class="text-muted d-block">{{ profile.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No profiles created yet.</p>
+                    {% endif %}
+                    <a href="{{ url_for('create_profile') }}" class="btn btn-primary btn-sm">Create Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5>Quick Actions</h5>
+                    <a href="{{ url_for('floor_plans') }}" class="btn btn-outline-primary me-2">View All Floor Plans</a>
+                    <a href="{{ url_for('ilot_profiles') }}" class="btn btn-outline-primary me-2">View All Profiles</a>
+                    <a href="{{ url_for('placements') }}" class="btn btn-outline-primary">View All Placements</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

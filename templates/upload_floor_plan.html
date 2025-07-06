@@ -1,0 +1,24 @@
+
+{% extends "base.html" %}
+
+{% block title %}Upload Floor Plan - Space Planning App{% endblock %}
+
+{% block content %}
+<h1>Upload Floor Plan</h1>
+
+<form method="POST" enctype="multipart/form-data" class="mt-4">
+    <div class="mb-3">
+        <label for="name" class="form-label">Plan Name</label>
+        <input type="text" class="form-control" id="name" name="name" required>
+    </div>
+    
+    <div class="mb-3">
+        <label for="file" class="form-label">Floor Plan File</label>
+        <input type="file" class="form-control" id="file" name="file" accept=".dxf,.png,.jpg,.jpeg,.gif,.pdf" required>
+        <div class="form-text">Supported formats: DXF, PNG, JPG, JPEG, GIF, PDF</div>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Upload</button>
+    <a href="{{ url_for('floor_plans') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

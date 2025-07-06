@@ -1,0 +1,23 @@
+
+{% extends "base.html" %}
+
+{% block title %}Create Profile - Space Planning App{% endblock %}
+
+{% block content %}
+<h1>Create New Ilot Profile</h1>
+
+<form method="POST" class="mt-4">
+    <div class="mb-3">
+        <label for="name" class="form-label">Profile Name</label>
+        <input type="text" class="form-control" id="name" name="name" required>
+    </div>
+    
+    <div class="mb-3">
+        <label for="corridor_width" class="form-label">Corridor Width (meters)</label>
+        <input type="number" step="0.1" class="form-control" id="corridor_width" name="corridor_width" value="1.5">
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Create Profile</button>
+    <a href="{{ url_for('ilot_profiles') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

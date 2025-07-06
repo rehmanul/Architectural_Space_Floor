@@ -1,0 +1,52 @@
+
+{% extends "base.html" %}
+
+{% block title %}Placements - Space Planning App{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Layout Placements</h1>
+    <a href="{{ url_for('create_placement') }}" class="btn btn-primary">Create New Placement</a>
+</div>
+
+{% if placements %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Floor Plan</th>
+                    <th>Profile</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for placement in placements %}
+                <tr>
+                    <td>{{ placement.id }}</td>
+                    <td>{{ placement.floor_plan.name if placement.floor_plan else 'N/A' }}</td>
+                    <td>{{ placement.ilot_profile.name if placement.ilot_profile else 'N/A' }}</td>
+                    <td>
+                        <span class="badge bg-{{ 'success' if placement.status == 'completed' else 'warning' if placement.status == 'processing' else 'danger' if placement.status == 'failed' else 'secondary' }}">
+                            {{ placement.status.title() }}
+                        </span>
+                    </td>
+                    <td>{{ placement.created_at.strftime('%m/%d/%Y') }}</td>
+                    <td>
+                        <a href="{{ url_for('view_placement', id=placement.id) }}" class="btn btn-sm btn-primary">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="text-center mt-5">
+        <h3>No placements yet</h3>
+        <p class="text-muted">Create your first placement to get started.</p>
+        <a href="{{ url_for('create_placement') }}" class="btn btn-primary">Create Placement</a>
+    </div>
+{% endif %}
+{% endblock %}

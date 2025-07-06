@@ -1,0 +1,61 @@
+
+{% extends "base.html" %}
+
+{% block title %}Placement #{{ placement.id }} - Space Planning App{% endblock %}
+
+{% block content %}
+<h1>Placement #{{ placement.id }}</h1>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Placement Details</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Floor Plan:</strong> {{ placement.floor_plan.name if placement.floor_plan else 'N/A' }}</p>
+                <p><strong>Profile:</strong> {{ placement.ilot_profile.name if placement.ilot_profile else 'N/A' }}</p>
+                <p><strong>Status:</strong> 
+                    <span class="badge bg-{{ 'success' if placement.status == 'completed' else 'warning' if placement.status == 'processing' else 'danger' if placement.status == 'failed' else 'secondary' }}">
+                        {{ placement.status.title() }}
+                    </span>
+                </p>
+                <p><strong>Created:</strong> {{ placement.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                {% if placement.error_message %}
+                <p><strong>Error:</strong> <span class="text-danger">{{ placement.error_message }}</span></p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Statistics</h5>
+            </div>
+            <div class="card-body">
+                {% if placement.statistics %}
+                    <pre>{{ placement.statistics | tojson(indent=2) }}</pre>
+                {% else %}
+                    <p class="text-muted">No statistics available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if placement.placed_units %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Placed Units</h5>
+            </div>
+            <div class="card-body">
+                <pre>{{ placement.placed_units | tojson(indent=2) }}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -80,9 +80,10 @@ def create_profile():
     """Create a new ilot profile"""
     if request.method == 'POST':
         profile = IlotProfile(
+            project_id=1,  # Default project for now
             name=request.form['name'],
-            description=request.form.get('description', ''),
-            corridor_width=float(request.form.get('corridor_width', 2.0))
+            size_distribution=[],  # Default empty size distribution
+            corridor_width=float(request.form.get('corridor_width', 1.5))
         )
         
         db.session.add(profile)

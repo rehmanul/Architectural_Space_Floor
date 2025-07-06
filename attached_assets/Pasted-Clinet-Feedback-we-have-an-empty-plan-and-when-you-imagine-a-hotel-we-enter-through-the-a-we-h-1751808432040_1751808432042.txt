@@ -1,0 +1,98 @@
+Clinet Feedback:
+
+we have an empty plan and when you imagine a hotel, we enter through the a, we have a corridor, we have the rooms, we have the stairs. In fact there should be knowledge from the empty plan to be able to place all this in order with the dimensions of the given rooms and the dimensions of the corridors.
+
+Expected Functionality:
+
+1. Loading the Plan The plan includes:
+
+Walls (black lines)
+Restricted areas (light blue, e.g. stairs, elevators)
+Entrances/Exits (in red) — no îlot should be placed touching these areas
+
+2. Îlot Placement Rules: The user can define a layout profile, for example:
+
+shell
+CopierModifier
+10% of îlots between 0 and 1 m²  
+25% of îlots between 1 and 3 m²  
+30% of îlots between 3 and 5 m²  
+35% of îlots between 5 and 10 m²  
+
+The application must:
+
+Generate the number of îlots based on these proportions
+Place them automatically inside available zones
+Avoid red and blue areas
+Allow îlots to touch black walls, except near entrances/exits
+
+3. Corridors Between Îlots:
+If two rows of îlots face each other, a mandatory corridor must be placed between them.
+The corridor must touch both îlot rows but must not overlap any îlot.
+The corridor width should be configurable.
+
+🎯 Expected Output
+The result should look like the second image:
+
+Îlots are neatly arranged
+All constraints (red/blue zones) are respected
+Corridors are added automatically
+No overlaps between îlots
+
+🛠 Required Features in the App:
+
+Load a DXF file (or layered image)
+Detect zones: walls / restricted / entrances
+Allow user to input îlot proportions
+
+Automatically place îlots with:
+Space optimization
+Constraint compliance
+2D/3D visualization (with color codes as in the images)
+
+Export result (PDF or image)
+
+📎 Attachments:
+
+First image: empty floor plan with legend
+expected software views 1.jpg
+
+Second image: expected result with îlots and corridors
+expected software views 2.jpg
+
+Database to use POSTGRESQL:
+
+Connections
+Hostname dpg-d1h53rffte5s739b1i40-a
+
+Port
+5432
+Database
+dwg_analyzer_pro
+Username
+de_de
+Password
+PUPB8V0s2b3bvNZUblolz7d6UM9bcBzb
+
+
+Internal Database URL
+postgresql://de_de:PUPB8V0s2b3bvNZUblolz7d6UM9bcBzb@dpg-d1h53rffte5s739b1i40-a/dwg_analyzer_pro
+
+External Database URL
+postgresql://de_de:PUPB8V0s2b3bvNZUblolz7d6UM9bcBzb@dpg-d1h53rffte5s739b1i40-a.oregon-postgres.render.com/dwg_analyzer_pro
+
+PSQL Command
+PGPASSWORD=PUPB8V0s2b3bvNZUblolz7d6UM9bcBzb psql -h dpg-d1h53rffte5s739b1i40-a.oregon-postgres.render.com -U de_de dwg_analyzer_pro
+
+Access Control
+1 IP range is allowed from outside of your private network.
+
+Sources are specified CIDR block notation.
+
+Source
+Description
+0.0.0.0/0
+everywhere
+
+Validate IP address
+0.0.0.0

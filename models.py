@@ -58,12 +58,6 @@ class IlotPlacement(db.Model):
     algorithm = db.Column(db.String(100), nullable=False)  # Algorithm used
     status = db.Column(db.String(50), default='completed', nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Legacy columns for backward compatibility
-    placed_units = db.Column(JSON)  # Coordinates and properties of placed units
-    corridors = db.Column(JSON)  # Generated corridor paths
-    statistics = db.Column(JSON)  # Placement statistics (utilization, counts, etc.)
-    error_message = db.Column(Text)
 
 class ZoneAnnotation(db.Model):
     __tablename__ = 'zones'
@@ -87,4 +81,4 @@ class Project(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.String(255), nullable=False)
-    project_metadata = db.Column(JSON)
+    metadata_info = db.Column('project_metadata', JSON)

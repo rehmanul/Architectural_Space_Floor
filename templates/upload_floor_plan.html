@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 
 {% block title %}Upload Floor Plan - Space Planning App{% endblock %}
@@ -11,13 +10,22 @@
         <label for="name" class="form-label">Plan Name</label>
         <input type="text" class="form-control" id="name" name="name" required>
     </div>
-    
+
     <div class="mb-3">
         <label for="file" class="form-label">Floor Plan File</label>
-        <input type="file" class="form-control" id="file" name="file" accept=".dxf,.png,.jpg,.jpeg,.gif,.pdf" required>
-        <div class="form-text">Supported formats: DXF, PNG, JPG, JPEG, GIF, PDF</div>
+        <input type="file" 
+                       name="file" 
+                       class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
+                       accept=".dxf,.dwg,.pdf,.png,.jpg,.jpeg,.gif,.bmp,.tiff,.tif"
+                       required>
+                <p class="mt-2 text-sm text-gray-600">
+                    <strong>Supported formats:</strong><br>
+                    <span class="text-blue-600">CAD Files:</span> DXF, DWG<br>
+                    <span class="text-green-600">Documents:</span> PDF<br>
+                    <span class="text-purple-600">Images:</span> PNG, JPG, JPEG, GIF, BMP, TIFF
+                </p>
     </div>
-    
+
     <button type="submit" class="btn btn-primary">Upload</button>
     <a href="{{ url_for('floor_plans') }}" class="btn btn-secondary">Cancel</a>
 </form>

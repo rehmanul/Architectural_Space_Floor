@@ -5,10 +5,15 @@ description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
     "email-validator>=2.2.0",
+    "ezdxf>=1.4.2",
     "flask>=3.1.1",
     "flask-sqlalchemy>=3.1.1",
     "gunicorn>=23.0.0",
+    "opencv-python-headless>=4.11.0.86",
+    "pillow>=11.3.0",
     "psycopg2-binary>=2.9.10",
+    "pymupdf>=1.26.3",
+    "python-magic>=0.4.27",
     "sqlalchemy>=2.0.41",
     "werkzeug>=3.1.3",
 ]

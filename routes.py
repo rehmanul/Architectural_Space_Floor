@@ -2,8 +2,10 @@ from flask import render_template, request, redirect, url_for, flash, jsonify
 from werkzeug.utils import secure_filename
 import os
 import uuid
+from datetime import datetime
 from app import app, db
 from models import FloorPlan, IlotProfile, IlotPlacement, ZoneAnnotation, Project
+from file_processor import FileProcessor
 
 @app.route('/')
 def index():
@@ -40,17 +42,55 @@ def upload_floor_plan():
             
             file.save(file_path)
             
-            # Create floor plan record
-            floor_plan = FloorPlan(
-                project_id=1,  # Default project for now
-                name=request.form.get('name', filename),
-                original_file_name=filename,
-                file_path=file_path,
-                file_type='dxf' if file_ext == 'dxf' else 'image',
-                file_size=os.path.getsize(file_path),
-                width=100.0,  # Default width - should be parsed from file
-                height=100.0  # Default height - should be parsed from file
-            )
+            # Process the uploaded file
+            try:
+                processing_result = process_uploaded_file(file_path, filename)
+                
+                # Determine file type category
+                processor = FileProcessor()
+                detected_type = processor.detect_file_type(file_path)
+                
+                if detected_type == 'cad':
+                    file_type = 'cad'
+                elif detected_type == 'pdf':
+                    file_type = 'pdf'
+                elif detected_type == 'image':
+                    file_type = 'image'
+                else:
+                    file_type = 'unknown'
+                
+                # Create floor plan record
+                floor_plan = FloorPlan(
+                    project_id=1,  # Default project for now
+                    name=request.form.get('name', filename),
+                    original_file_name=filename,
+                    file_path=file_path,
+                    file_type=file_type,
+                    file_size=os.path.getsize(file_path),
+                    width=processing_result['width'],
+                    height=processing_result['height'],
+                    processed=processing_result['processed'],
+                    processed_at=datetime.utcnow() if processing_result['processed'] else None,
+                    analysis_data=processing_result['analysis_data']
+                )
+                
+                if processing_result['error']:
+                    flash(f'File uploaded but processing had issues: {processing_result["error"]}', 'warning')
+                
+            except Exception as e:
+                # Create basic record even if processing fails
+                floor_plan = FloorPlan(
+                    project_id=1,
+                    name=request.form.get('name', filename),
+                    original_file_name=filename,
+                    file_path=file_path,
+                    file_type='unknown',
+                    file_size=os.path.getsize(file_path),
+                    width=100.0,
+                    height=100.0,
+                    processed=False
+                )
+                flash(f'File uploaded but could not be processed: {str(e)}', 'warning')
             
             db.session.add(floor_plan)
             db.session.commit()
@@ -144,8 +184,49 @@ def view_placement(id):
 
 def allowed_file(filename):
     """Check if the uploaded file type is allowed"""
-    ALLOWED_EXTENSIONS = {'dxf', 'png', 'jpg', 'jpeg', 'gif', 'pdf'}
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    processor = FileProcessor()
+    extension = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
+    return extension in processor.get_supported_formats()
+
+def process_uploaded_file(file_path: str, filename: str) -> dict:
+    """Process uploaded file and extract relevant data"""
+    processor = FileProcessor()
+    
+    # Create output directory for processed files
+    file_id = os.path.splitext(os.path.basename(file_path))[0]
+    output_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'processed', file_id)
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Process the file
+    result = processor.process_file(file_path, output_dir)
+    
+    # Extract dimensions and other metadata
+    width = height = 100.0  # Default values
+    
+    if result['success'] and result['data']:
+        data = result['data']
+        
+        # Extract dimensions based on file type
+        if result['file_type'] == 'cad' and 'bounds' in data and data['bounds']:
+            bounds = data['bounds']
+            width = bounds['width']
+            height = bounds['height']
+        elif result['file_type'] == 'image' and 'width' in data:
+            width = data['width']
+            height = data['height']
+        elif result['file_type'] == 'pdf' and data['pages']:
+            # Use first page dimensions
+            first_page = data['pages'][0]
+            width = first_page['width']
+            height = first_page['height']
+    
+    return {
+        'width': width,
+        'height': height,
+        'analysis_data': result['data'] if result['success'] else None,
+        'processed': result['success'],
+        'error': result.get('error')
+    }
 
 @app.errorhandler(404)
 def not_found_error(error):

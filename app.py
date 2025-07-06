@@ -42,3 +42,4 @@ with app.app_context():
     
     # Import routes
     import routes
+    import api_routes

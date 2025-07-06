@@ -34,6 +34,11 @@ const upload = multer({
   }
 });
 
+// Health check endpoint
+router.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Projects API
 router.get('/api/projects', async (req, res) => {
   try {

@@ -1,29 +1,17 @@
-modules = ["nodejs-20"]
+modules = ["python-3.11", "nodejs-20", "postgresql-16"]
 
 [nix]
 channel = "stable-24_05"
+packages = ["openssl", "postgresql"]
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
 
 [[ports]]
-localPort = 3000
+localPort = 5000
 externalPort = 80
 
 [[ports]]
 localPort = 5173
 externalPort = 5173
-exposeLocalhost = true
-
-[deployment]
-run = ["sh", "-c", "npm start"]
-build = ["sh", "-c", "npm run build"]
-
-[workflows]
-runButton = "Development Server"
-
-[[workflows.workflow]]
-name = "Development Server"
-author = 44657024
-mode = "parallel"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"

@@ -105,6 +105,10 @@ Preferred communication style: Simple, everyday language.
 ```
 Changelog:
 - July 06, 2025. Initial setup
+- July 06, 2025. Successfully cloned and set up Architectural_Space_Floor repository
+- July 06, 2025. Fixed Express.js version compatibility (downgraded from v5 to v4.18)
+- July 06, 2025. Installed all required dependencies and database schema
+- July 06, 2025. Backend server running successfully on port 5000 with full features
 ```
 
 ## Technical Notes

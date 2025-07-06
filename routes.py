@@ -3,7 +3,7 @@ from werkzeug.utils import secure_filename
 import os
 import uuid
 from app import app, db
-from models import FloorPlan, IlotProfile, IlotPlacement, ZoneAnnotation
+from models import FloorPlan, IlotProfile, IlotPlacement, ZoneAnnotation, Project
 
 @app.route('/')
 def index():
@@ -42,10 +42,14 @@ def upload_floor_plan():
             
             # Create floor plan record
             floor_plan = FloorPlan(
+                project_id=1,  # Default project for now
                 name=request.form.get('name', filename),
-                filename=new_filename,
+                original_file_name=filename,
                 file_path=file_path,
-                file_type='dxf' if file_ext == 'dxf' else 'image'
+                file_type='dxf' if file_ext == 'dxf' else 'image',
+                file_size=os.path.getsize(file_path),
+                width=100.0,  # Default width - should be parsed from file
+                height=100.0  # Default height - should be parsed from file
             )
             
             db.session.add(floor_plan)

@@ -1,3 +1,4 @@
+
 from app import db
 from datetime import datetime
 from sqlalchemy import Text, JSON
@@ -6,24 +7,29 @@ import uuid
 class FloorPlan(db.Model):
     __tablename__ = 'floor_plans'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    project_id = db.Column(db.Integer, nullable=False)
     name = db.Column(db.String(255), nullable=False)
-    filename = db.Column(db.String(255), nullable=False)
-    file_path = db.Column(db.String(500), nullable=False)
-    file_type = db.Column(db.String(10), nullable=False)  # 'dxf' or 'image'
+    original_file_name = db.Column(db.String(255), nullable=False)
+    file_type = db.Column(db.String(50), nullable=False)  # 'dxf' or 'image'
+    file_path = db.Column(Text, nullable=False)
+    file_size = db.Column(db.Integer, nullable=False)
+    width = db.Column(db.Float, nullable=False)
+    height = db.Column(db.Float, nullable=False)
+    scale = db.Column(db.Float, default=1.0, nullable=False)
+    processed = db.Column(db.Boolean, default=False, nullable=False)
+    processed_at = db.Column(db.DateTime)
+    analysis_data = db.Column(JSON)  # Detected zones (walls, restricted areas, entrances)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Parsed data
-    zones_data = db.Column(JSON)  # Detected zones (walls, restricted areas, entrances)
-    dimensions = db.Column(JSON)  # Floor plan dimensions and scale
     
     # Relationships
     placements = db.relationship('IlotPlacement', backref='floor_plan', lazy=True, cascade='all, delete-orphan')
 
 class IlotProfile(db.Model):
-    __tablename__ = 'ilot_profiles'
+    __tablename__ = 'ilot_configurations'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    project_id = db.Column(db.Integer, nullable=False)
     name = db.Column(db.String(255), nullable=False)
     description = db.Column(Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -37,11 +43,11 @@ class IlotProfile(db.Model):
     placements = db.relationship('IlotPlacement', backref='ilot_profile', lazy=True)
 
 class IlotPlacement(db.Model):
-    __tablename__ = 'ilot_placements'
+    __tablename__ = 'generated_layouts'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    floor_plan_id = db.Column(db.String(36), db.ForeignKey('floor_plans.id'), nullable=False)
-    ilot_profile_id = db.Column(db.String(36), db.ForeignKey('ilot_profiles.id'), nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    floor_plan_id = db.Column(db.Integer, db.ForeignKey('floor_plans.id'), nullable=False)
+    ilot_profile_id = db.Column(db.Integer, db.ForeignKey('ilot_configurations.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Placement results
@@ -54,11 +60,25 @@ class IlotPlacement(db.Model):
     error_message = db.Column(Text)
 
 class ZoneAnnotation(db.Model):
-    __tablename__ = 'zone_annotations'
+    __tablename__ = 'zones'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    floor_plan_id = db.Column(db.String(36), db.ForeignKey('floor_plans.id'), nullable=False)
-    zone_type = db.Column(db.String(50), nullable=False)  # 'wall', 'restricted', 'entrance', 'exit'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    floor_plan_id = db.Column(db.Integer, db.ForeignKey('floor_plans.id'), nullable=False)
+    type = db.Column(db.String(50), nullable=False)  # 'wall', 'restricted', 'entrance', 'exit'
+    color = db.Column(db.String(20), nullable=False)  # Color code for visualization
     coordinates = db.Column(JSON)  # Polygon or line coordinates
+    area = db.Column(db.Float)
     properties = db.Column(JSON)  # Additional zone properties
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+# Add Project model to match the schema
+class Project(db.Model):
+    __tablename__ = 'projects'
+    
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(255), nullable=False)
+    description = db.Column(Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.String(255), nullable=False)
+    metadata = db.Column(JSON)

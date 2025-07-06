@@ -27,5 +27,9 @@
     "AI",
     "optimization"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "drizzle-kit": "^0.31.4",
+    "tailwindcss": "^4.1.11"
+  }
 }
